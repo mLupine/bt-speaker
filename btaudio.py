@@ -32,7 +32,7 @@ device_path = /org/bluez/hci0
 
 [alsa]
 mixer = PCM
-id = 0
+id = 1
 cardindex = 0
 '''
 
@@ -75,7 +75,7 @@ class PipedSBCAudioSinkWithAlsaVolumeControl(SBCAudioSink):
         volume = math.pow(volume, 1.0/3.0)
         
         # alsamixer takes a percent value as integer from 0-100
-        self.alsamixer.setvolume(int(volume * 100.0))
+       # self.alsamixer.setvolume(int(volume * 100.0))
         
 class AutoAcceptSingleAudioAgent(BTAgent):
     """
