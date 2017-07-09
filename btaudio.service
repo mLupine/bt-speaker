@@ -1,0 +1,12 @@
+[Unit]
+Description="BT audio receiver for the Raspberry Pi"
+
+[Service]
+TimeoutStartSec=0
+WorkingDirectory=/opt/btaudio
+ExecStart=/opt/btaudio/btaudio.py
+Restart=always
+User=btaudio
+
+[Install]
+WantedBy=multi-user.target
