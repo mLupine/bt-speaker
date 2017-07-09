@@ -18,6 +18,7 @@ import math
 import configparser
 import io
 import traceback
+from subprocess import call
 
 BTAUDIO_CONFIG_FILE = '/opt/btaudio/config.ini'
 
@@ -30,11 +31,6 @@ disconnect_command = ogg123 /usr/share/sounds/freedesktop/stereo/service-logout.
 
 [bluez]
 device_path = /org/bluez/hci0
-
-[alsa]
-mixer = PCM
-id = 0
-cardindex = 0
 '''
 
 config = configparser.SafeConfigParser()
@@ -73,10 +69,11 @@ class PipedSBCAudioSinkWithAlsaVolumeControl(SBCAudioSink):
         # it looks like the value passed to alsamixer sets the volume by 'power level'
         # to adjust to the (human) perceived volume, we have to square the volume
         # @todo check if this only applies to the raspberry pi or in general (or if i got it wrong)
-        volume = math.pow(volume, 1.0/3.0)
+        #volume = math.pow(volume, 1.0/3.0)
 
         # alsamixer takes a percent value as integer from 0-100
        # self.alsamixer.setvolume(int(volume * 100.0))
+        call(["amixer", "-q", "sset", "Master", "%d%%" % int(volume*100.0)])
 
 class AutoAcceptSingleAudioAgent(BTAgent):
     """
