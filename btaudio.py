@@ -17,6 +17,7 @@ import alsaaudio
 import math
 import configparser
 import io
+import traceback
 
 BTAUDIO_CONFIG_FILE = '/opt/btaudio/config.ini'
 
@@ -32,7 +33,7 @@ device_path = /org/bluez/hci0
 
 [alsa]
 mixer = PCM
-id = 1
+id = 0
 cardindex = 0
 '''
 
@@ -47,36 +48,36 @@ class PipedSBCAudioSinkWithAlsaVolumeControl(SBCAudioSink):
     """
     def __init__(self, path='/endpoint/a2dpsink',
                        command=config.get('btaudio', 'play_command'),
-                       alsa_control=config.get('alsa', 'mixer'),
-                       alsa_id=int(config.get('alsa', 'id')),
-                       alsa_cardindex=int(config.get('alsa', 'cardindex')),
+                       #alsa_control=config.get('alsa', 'mixer'),
+                       #alsa_id=int(config.get('alsa', 'id')),
+                       #alsa_cardindex=int(config.get('alsa', 'cardindex')),
                        buf_size=2560):
         SBCAudioSink.__init__(self, path=path)
         # Start process
         self.process = subprocess.Popen(command, shell=True, bufsize=buf_size, stdin=subprocess.PIPE)
         # Hook into alsa service for volume control
-        self.alsamixer = alsaaudio.Mixer(control=alsa_control,
-                                         id=alsa_id,
-                                         cardindex=alsa_cardindex)
-    
+        #self.alsamixer = alsaaudio.Mixer(control=alsa_control,
+        #                                 id=alsa_id,
+        #                                 cardindex=alsa_cardindex)
+
     def raw_audio(self, data):
         # pipe to the play command
         self.process.stdin.write(data)
-        
+
     def volume(self, new_volume):
         # normalize volume
         volume = float(new_volume) / 127.0
-        
+
         print("Volume changed to %i%%" % (volume * 100.0))
-        
+
         # it looks like the value passed to alsamixer sets the volume by 'power level'
         # to adjust to the (human) perceived volume, we have to square the volume
         # @todo check if this only applies to the raspberry pi or in general (or if i got it wrong)
         volume = math.pow(volume, 1.0/3.0)
-        
+
         # alsamixer takes a percent value as integer from 0-100
        # self.alsamixer.setvolume(int(volume * 100.0))
-        
+
 class AutoAcceptSingleAudioAgent(BTAgent):
     """
     Accepts one client unconditionally and hides the device once connected.
@@ -91,7 +92,7 @@ class AutoAcceptSingleAudioAgent(BTAgent):
         self.connected = None
         self.tracked_devices =  []
         self.update_discoverable()
-        
+
     def update_discoverable(self):
         if bool(self.connected):
             print("Hiding adapter from all devices.")
@@ -99,13 +100,13 @@ class AutoAcceptSingleAudioAgent(BTAgent):
         else:
             print("Showing adapter to all devices.")
             self.adapter.set_property('Discoverable', True)
-        
+
     def auto_accept_one(self, method, device, uuid):
         if not BTUUID(uuid).uuid in self.allowed_uuids: return False
         if self.connected and self.connected != device:
             print("Rejecting device, because another one is already connected. connected_device=%s, device=%s" % (self.connected, device))
             return False
-        
+
         # track connection state of the device (is there a better way?)
         if not device in self.tracked_devices:
             self.tracked_devices.append(device)
@@ -114,13 +115,13 @@ class AutoAcceptSingleAudioAgent(BTAgent):
                                                   signal_name='PropertiesChanged',
                                                   dbus_interface='org.freedesktop.DBus.Properties',
                                                   path_keyword='device')
-        
+
         return True
-    
+
     def _track_connection_state(self, addr, properties, signature, device):
         if self.connected and self.connected != device: return
         if not 'Connected' in properties: return
-        
+
         if not self.connected and bool(properties['Connected']):
             print("Device connected. device=%s" % device)
             self.connected = device
@@ -138,7 +139,7 @@ def setup_bt():
     manager = BTAgentManager()
     manager.register_agent(agent._path, "NoInputNoOutput")
     manager.request_default_agent(agent._path)
-    
+
     # register sink and media endpoint
     sink = PipedSBCAudioSinkWithAlsaVolumeControl()
     media = BTMedia(config.get('bluez', 'device_path'))
@@ -150,13 +151,13 @@ def run():
 
     # Mainloop for communication
     mainloop = GLib.MainLoop()
-   
+
     # catch SIGTERM
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, lambda signal: mainloop.quit(), None)
-    
+
     # setup bluetooth configuration
     setup_bt()
-    
+
     # Run
     mainloop.run()
 
@@ -166,4 +167,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('KeyboardInterrupt')
     except Exception as e:
-        print(e.message)
+        print("Error: %s" % e.message)
+        traceback.print_exc()

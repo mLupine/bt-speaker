@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from bt_manager import ffi
 import os
+import traceback
 
 A2DP_CODECS = {'SBC': 0x00,
                'MPEG12': 0x01,
@@ -100,6 +101,7 @@ class SBCCodec:
             self.codec = ffi.dlopen('./librtpsbc.so')
         except:
             print 'Exception:', sys.exc_info()[0]
+            traceback.print_exc()
 
         self.config = ffi.new('sbc_t *')
         self.ts = ffi.new('unsigned int *', 0)
