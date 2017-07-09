@@ -18,11 +18,11 @@ import math
 import configparser
 import io
 
-BTSPEAKER_CONFIG_FILE = '/etc/bt_speaker/config.ini'
+BTAUDIO_CONFIG_FILE = '/opt/btaudio/config.ini'
 
 # Load config
 default_config = u'''
-[bt_speaker]
+[btaudio]
 play_command = aplay -f cd -
 connect_command = ogg123 /usr/share/sounds/freedesktop/stereo/service-login.oga
 disconnect_command = ogg123 /usr/share/sounds/freedesktop/stereo/service-logout.oga
@@ -38,7 +38,7 @@ cardindex = 0
 
 config = configparser.SafeConfigParser()
 config.readfp(io.StringIO(default_config))
-config.read(BTSPEAKER_CONFIG_FILE)
+config.read(BTAUDIO_CONFIG_FILE)
 
 class PipedSBCAudioSinkWithAlsaVolumeControl(SBCAudioSink):
     """
@@ -46,7 +46,7 @@ class PipedSBCAudioSinkWithAlsaVolumeControl(SBCAudioSink):
     The class also sets the volume of an alsadevice
     """
     def __init__(self, path='/endpoint/a2dpsink',
-                       command=config.get('bt_speaker', 'play_command'),
+                       command=config.get('btaudio', 'play_command'),
                        alsa_control=config.get('alsa', 'mixer'),
                        alsa_id=int(config.get('alsa', 'id')),
                        alsa_cardindex=int(config.get('alsa', 'cardindex')),
@@ -125,12 +125,12 @@ class AutoAcceptSingleAudioAgent(BTAgent):
             print("Device connected. device=%s" % device)
             self.connected = device
             self.update_discoverable()
-            subprocess.Popen(config.get('bt_speaker', 'connect_command'), shell=True)
+            subprocess.Popen(config.get('btaudio', 'connect_command'), shell=True)
         elif self.connected and not bool(properties['Connected']):
             print("Device disconnected. device=%s" % device)
             self.connected = None
             self.update_discoverable()
-            subprocess.Popen(config.get('bt_speaker', 'disconnect_command'), shell=True)
+            subprocess.Popen(config.get('btaudio', 'disconnect_command'), shell=True)
 
 def setup_bt():
     # setup bluetooth agent (that manages connections of devices)
