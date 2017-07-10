@@ -83,7 +83,7 @@ class AutoAcceptSingleAudioAgent(BTAgent):
     connecting devices but the easiest to implement.
     """
     def __init__(self):
-        BTAgent.__init__(self, cb_notify_on_authorize=self.auto_accept_one)
+        BTAgent.__init__(self, auto_authorize_connections=False, cb_notify_on_authorize=self.auto_accept_one, default_pass_key=7131, cb_notify_on_request_confirmation=self.confirm_request, cb_notify_on_request_pin_code=self.pincode_request, cb_notify_on_request_pass_key=self.passkey_request)
         self.adapter = BTAdapter(config.get('bluez', 'device_path'))
         self.allowed_uuids = [ SERVICES["AdvancedAudioDistribution"].uuid, SERVICES["AVRemoteControl"].uuid ]
         self.connected = None
@@ -98,7 +98,25 @@ class AutoAcceptSingleAudioAgent(BTAgent):
             print("Showing adapter to all devices.")
             self.adapter.set_property('Discoverable', True)
 
-    def auto_accept_one(self, method, device, uuid):
+    def confirm_request(self, *arg):
+        print("confirm")
+        print(arg)
+        return True
+
+    def pincode_request(self, *arg):
+        print("pin")
+        print(arg)
+
+    def passkey_request(self, *arg):
+        print("Passkey request")
+        print(arg)
+        print("EOR")
+        return "7130"
+
+    def auto_accept_one(self, *args):#method, device, uuid):
+        #print("lol")
+        #print(args)
+        #return True
         if not BTUUID(uuid).uuid in self.allowed_uuids: return False
         if self.connected and self.connected != device:
             print("Rejecting device, because another one is already connected. connected_device=%s, device=%s" % (self.connected, device))

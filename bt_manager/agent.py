@@ -8,7 +8,7 @@ from interface import BTInterface
 class BTAgentManager(BTInterface):
     def __init__(self):
         BTInterface.__init__(self, '/org/bluez', 'org.bluez.AgentManager1')
-        
+
     def register_agent(self, path, capability=""):
         """
         This registers an agent handler.
@@ -184,7 +184,7 @@ class BTAgent(dbus.service.Object):
             raise BTRejectedException('No default pass key set')
         else:
             pass_key = self.default_pass_key
-        return dbus.UInt32(pass_key)
+        return dbus.String(pass_key)
 
     @dbus.service.method("org.bluez.Agent1", in_signature="ou",
                          out_signature="")
