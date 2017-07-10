@@ -83,7 +83,7 @@ class AutoAcceptSingleAudioAgent(BTAgent):
     connecting devices but the easiest to implement.
     """
     def __init__(self):
-        BTAgent.__init__(self, auto_authorize_connections=False, cb_notify_on_authorize=self.auto_accept_one, default_pass_key=7131, cb_notify_on_request_confirmation=self.confirm_request, cb_notify_on_request_pin_code=self.pincode_request, cb_notify_on_request_pass_key=self.passkey_request)
+        BTAgent.__init__(self, auto_authorize_connections=False, cb_notify_on_authorize=self.auto_accept_one, default_pass_key=7130, cb_notify_on_request_confirmation=self.confirm_request, cb_notify_on_request_pin_code=self.pincode_request, cb_notify_on_request_pass_key=self.passkey_request)
         self.adapter = BTAdapter(config.get('bluez', 'device_path'))
         self.allowed_uuids = [ SERVICES["AdvancedAudioDistribution"].uuid, SERVICES["AVRemoteControl"].uuid ]
         self.connected = None
@@ -106,6 +106,7 @@ class AutoAcceptSingleAudioAgent(BTAgent):
     def pincode_request(self, *arg):
         print("pin")
         print(arg)
+        return 7130
 
     def passkey_request(self, *arg):
         print("Passkey request")
