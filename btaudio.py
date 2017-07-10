@@ -113,7 +113,7 @@ class AutoAcceptSingleAudioAgent(BTAgent):
         print("EOR")
         return "7130"
 
-    def auto_accept_one(self, *args):#method, device, uuid):
+    def auto_accept_one(self, method, device, uuid):
         #print("lol")
         #print(args)
         #return True
